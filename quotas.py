@@ -45,8 +45,7 @@ class Quotas:
         search_volumes: Finds group quota on any volume in a specific vserver.
 
     Class Variables:
-        CDOT_PASSWORD (string): NetApp read/write password.
-        CDOT_USERNAME (string): NetApp read/write username.
+        CONFIG_FILE (string): Location of the conf file.
         DEFAULT_QUOTA (string): The quota value to use when none is specified.
         FILESIZES (dictionary): Valid filesize units and their kb multiplier.
         JERK_FILESIZES (tuple): Invalid filesize units.
