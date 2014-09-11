@@ -8,10 +8,6 @@ __maintainer__ = "HMDC"
 __email__ = "ops@latte.harvard.edu"
 __status__ = "Production"
 
-from hmdclogger import HMDCLogger
-from quotas import Quotas
-import argparse
-
 """
 Script for manipulating group quotas on the NetApp using the Quotas module.
 
@@ -20,6 +16,10 @@ Public Functions:
     print_quotas: Formats the quota results for printing to console.
     search_quotas: Preps and calls search NetApp queries.
 """
+
+from hmdclogger import HMDCLogger
+from quotas import Quotas
+import argparse
 
 
 def modify_quota(args, qh, hmdclog):
@@ -119,7 +119,7 @@ def search_quotas(args, qh, hmdclog):
 # Setup argument parsing with the argparse module.
 parser = argparse.ArgumentParser(description="Manage RCE group quotas.")
 parser.add_argument('-d', '--debug', action='store_true',
-                    help="Enables verbose output.",)
+                    help="Enables verbose output.")
 parser.add_argument('-a', '--action', required=True, choices=['A', 'D', 'M', 'S'],
                     help="Add | Delete | Modify | Search")
 parser.add_argument('-g', '--group', required=True,
