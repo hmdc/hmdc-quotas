@@ -82,15 +82,20 @@ def print_quotas(results):
         svm (string): Name of the vserver where quotas were found.
     """
 
+    # template = "{0:8}|{1:10}|{2:15}|{3:7}|{4:10}"
+    # print template.format("CLASSID", "DEPT", "COURSE NUMBER", "AREA", "TITLE") # header
+    # for rec in your_data_source: 
+    # print template.format(*rec)
+
+    print("{:<10} {:<25} {:<5} {:>11} {:>11}".
+          format("GROUP", "VOLUME", "SVM", "DISK QUOTA", "FILE QUOTA"))
+
     for vserver, volumes in results.iteritems():
         for name, quotas in volumes.iteritems():
             disk_quota, file_quota = quotas
-
             svm = vserver.split('-')[1]
-            location = "(" + svm + "/" + name + "):"
-
-            print("{} {:<30} {:>10} (disk) {:>10} (file)".
-                  format(args.group, location, disk_quota, file_quota))
+            print("{:<10} {:<25} {:<5} {:>11} {:>11}".
+                  format(args.group, name, svm, disk_quota, file_quota))
 
 
 def search_quotas(args, qh, hmdclog):
@@ -124,7 +129,8 @@ parser.add_argument('-a', '--action', required=True, choices=['A', 'D', 'M', 'S'
                     help="Add | Delete | Modify | Search")
 parser.add_argument('-g', '--group', required=True,
                     help="Name of the group.")
-parser.add_argument('-v', '--volume',
+parser.add_argument('-v', '--volume', choices=['projects', 'projects_nobackup',
+                    'projects_ci3', 'projects_nobackup_ci3', 'www'],
                     help="The NetApp volume.")
 parser.add_argument('-s', '--size',
                     help="Size of the disk quota.")
