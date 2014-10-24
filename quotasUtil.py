@@ -78,24 +78,20 @@ def print_quotas(results):
         results (dictionary): Each vserver and volume where quotas were found.
 
     Attributes:
-        location (string): The vserver and volume where quotas were found.
+        disk_quota (string): Disk quota displayed in GB.
+        file_quota (string): File quota displayed by number of files.
+        output (string): Format of output for use in a chart-layout.
         svm (string): Name of the vserver where quotas were found.
     """
 
-    # template = "{0:8}|{1:10}|{2:15}|{3:7}|{4:10}"
-    # print template.format("CLASSID", "DEPT", "COURSE NUMBER", "AREA", "TITLE") # header
-    # for rec in your_data_source: 
-    # print template.format(*rec)
+    output = "{:<15} {:<25} {:>5} {:>15} {:>15}"
 
-    print("{:<10} {:<25} {:<5} {:>11} {:>11}".
-          format("GROUP", "VOLUME", "SVM", "DISK QUOTA", "FILE QUOTA"))
-
+    print output.format("GROUP", "VOLUME", "SVM", "DISK QUOTA", "FILE QUOTA")
     for vserver, volumes in results.iteritems():
         for name, quotas in volumes.iteritems():
             disk_quota, file_quota = quotas
             svm = vserver.split('-')[1]
-            print("{:<10} {:<25} {:<5} {:>11} {:>11}".
-                  format(args.group, name, svm, disk_quota, file_quota))
+            print output.format(args.group, name, svm, disk_quota, file_quota)
 
 
 def search_quotas(args, qh, hmdclog):
