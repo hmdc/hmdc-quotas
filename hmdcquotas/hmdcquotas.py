@@ -8,15 +8,15 @@ __maintainer__ = "HMDC"
 __email__ = "ops@latte.harvard.edu"
 __status__ = "Production"
 
-from hmdclogger import HMDCLogger
 from NaServer import *
 import ConfigParser
+import hmdclogger
 import humanize
 import re
 import sys
 
 
-class Quotas:
+class HMDCQuotas:
     """Tools for manipulating NetApp quotas using the NMSDK.
 
     Example:
