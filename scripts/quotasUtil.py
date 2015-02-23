@@ -18,7 +18,7 @@ Public Functions:
 """
 
 from hmdclogger import HMDCLogger
-from quotas import Quotas
+from hmdcquotas import HMDCQuotas
 import argparse
 
 
