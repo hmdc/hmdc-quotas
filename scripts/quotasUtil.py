@@ -18,9 +18,8 @@ Public Functions:
 """
 
 from hmdclogger import HMDCLogger
-from hmdcquotas import HMDCQuotas
 import argparse
-
+import hmdcquotas
 
 def modify_quota(args, qh, hmdclog):
     """Checks requirements, then calls appropriate function from Quotas module.
