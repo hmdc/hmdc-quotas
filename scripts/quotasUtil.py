@@ -83,7 +83,7 @@ def print_quotas(results):
         svm (string): Name of the vserver where quotas were found.
     """
 
-    output = "{:<15} {:<25} {:>5} {:>15} {:>15}"
+    output = "{0:<15} {1:<25} {2:>5} {3:>15} {4:>15}"
 
     print output.format("GROUP", "VOLUME", "SVM", "DISK QUOTA", "FILE QUOTA")
     for vserver, volumes in results.iteritems():
