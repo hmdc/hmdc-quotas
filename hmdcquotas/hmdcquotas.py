@@ -20,7 +20,7 @@ class HMDCQuotas:
     """Tools for manipulating NetApp quotas using the NMSDK.
 
     Example:
-        qh = Quotas()
+        qh = HMDCQuotas()
         # Modify a group
         qh.modify(action, group,  volume, vserver, size, files)
         # Search everything

@@ -18,7 +18,7 @@ Public Functions:
 """
 
 from hmdclogger import HMDCLogger
-from hmdcquotas import HMDCQuotas
+from hmdcquotas import hmdcquotas
 import argparse
 
 def modify_quota(args, qh, hmdclog):
