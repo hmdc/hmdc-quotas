@@ -1,4 +1,4 @@
-#!/usr/bin/env python27
+#!/usr/bin/env python
 
 __author__ = "Harvard-MIT Data Center DevOps"
 __copyright__ = "Copyright 2014, HMDC"
@@ -20,7 +20,7 @@ class HMDCQuotas:
     """Tools for manipulating NetApp quotas using the NMSDK.
 
     Example:
-        qh = Quotas()
+        qh = HMDCQuotas()
         # Modify a group
         qh.modify(action, group,  volume, vserver, size, files)
         # Search everything
@@ -52,7 +52,7 @@ class HMDCQuotas:
         VOLUMES (dictionary): SVMs with their respective volumes.
     """
 
-    CONFIG_FILE = '/root/quotas.conf'
+    CONFIG_FILE = '/etc/hmdcquotas.conf'
 
     DEFAULT_QUOTA = '5G'
 
@@ -102,7 +102,7 @@ class HMDCQuotas:
         if logger is None:
             if debug_level is None:
                 debug_level = self.options['debug_level']
-            self.hmdclog = HMDCLogger(config_name, debug_level)
+            self.hmdclog = hmdclogger.HMDCLogger(config_name, debug_level)
             if log_console:
                 self.hmdclog.log_to_console()
             if log_file:

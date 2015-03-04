@@ -1,4 +1,4 @@
-#!/usr/bin/env python27
+#!/usr/bin/env python
 
 __author__ = "Harvard-MIT Data Center DevOps"
 __copyright__ = "Copyright 2014, HMDC"
@@ -17,9 +17,9 @@ Public Functions:
     search_quotas: Preps and calls search NetApp queries.
 """
 
-from hmdclogger import HMDCLogger
-import argparse
 import hmdcquotas
+import hmdclogger
+import argparse
 
 def modify_quota(args, qh, hmdclog):
     """Checks requirements, then calls appropriate function from Quotas module.
@@ -83,7 +83,7 @@ def print_quotas(results):
         svm (string): Name of the vserver where quotas were found.
     """
 
-    output = "{:<15} {:<25} {:>5} {:>15} {:>15}"
+    output = "{0:<15} {1:<25} {2:>5} {3:>15} {4:>15}"
 
     print output.format("GROUP", "VOLUME", "SVM", "DISK QUOTA", "FILE QUOTA")
     for vserver, volumes in results.iteritems():
@@ -135,11 +135,11 @@ args = parser.parse_args()
 
 # Set logging level based on the debug argument.
 debug_level = 'DEBUG' if args.debug else 'NOTSET'
-hmdclog = HMDCLogger("QuotasUtil", debug_level)
+hmdclog = hmdclogger.HMDCLogger("QuotasUtil", debug_level)
 hmdclog.log_to_console()
 
 # Instantiate a Quotas class handler.
-qh = Quotas(hmdclog)
+qh = hmdcquotas.HMDCQuotas(hmdclog)
 
 # Determine action to perform.
 if args.action == 'S':
