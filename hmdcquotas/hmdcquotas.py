@@ -1,4 +1,4 @@
-#!/usr/bin/env python27
+#!/usr/bin/env python
 
 __author__ = "Harvard-MIT Data Center DevOps"
 __copyright__ = "Copyright 2014, HMDC"
@@ -8,9 +8,9 @@ __maintainer__ = "HMDC"
 __email__ = "ops@latte.harvard.edu"
 __status__ = "Production"
 
+from hmdclogger import HMDCLogger
 from NaServer import *
 import ConfigParser
-import hmdclogger
 import humanize
 import re
 import sys

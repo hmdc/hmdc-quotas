@@ -1,4 +1,4 @@
-#!/usr/bin/env python27
+#!/usr/bin/env python
 
 __author__ = "Harvard-MIT Data Center DevOps"
 __copyright__ = "Copyright 2014, HMDC"
@@ -18,8 +18,8 @@ Public Functions:
 """
 
 from hmdclogger import HMDCLogger
+from hmdcquotas import HMDCQuotas
 import argparse
-import hmdcquotas
 
 def modify_quota(args, qh, hmdclog):
     """Checks requirements, then calls appropriate function from Quotas module.
@@ -139,7 +139,7 @@ hmdclog = HMDCLogger("QuotasUtil", debug_level)
 hmdclog.log_to_console()
 
 # Instantiate a Quotas class handler.
-qh = Quotas(hmdclog)
+qh = HMDCQuotas(hmdclog)
 
 # Determine action to perform.
 if args.action == 'S':
