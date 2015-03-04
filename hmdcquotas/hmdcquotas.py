@@ -8,9 +8,9 @@ __maintainer__ = "HMDC"
 __email__ = "ops@latte.harvard.edu"
 __status__ = "Production"
 
-from hmdclogger import HMDCLogger
 from NaServer import *
 import ConfigParser
+import hmdclogger
 import humanize
 import re
 import sys
@@ -102,7 +102,7 @@ class HMDCQuotas:
         if logger is None:
             if debug_level is None:
                 debug_level = self.options['debug_level']
-            self.hmdclog = HMDCLogger(config_name, debug_level)
+            self.hmdclog = hmdclogger.HMDCLogger(config_name, debug_level)
             if log_console:
                 self.hmdclog.log_to_console()
             if log_file:

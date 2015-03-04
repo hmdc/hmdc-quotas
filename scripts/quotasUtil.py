@@ -17,8 +17,8 @@ Public Functions:
     search_quotas: Preps and calls search NetApp queries.
 """
 
-from hmdclogger import HMDCLogger
-from hmdcquotas import hmdcquotas
+import hmdcquotas
+import hmdclogger
 import argparse
 
 def modify_quota(args, qh, hmdclog):
@@ -135,11 +135,11 @@ args = parser.parse_args()
 
 # Set logging level based on the debug argument.
 debug_level = 'DEBUG' if args.debug else 'NOTSET'
-hmdclog = HMDCLogger("QuotasUtil", debug_level)
+hmdclog = hmdclogger.HMDCLogger("QuotasUtil", debug_level)
 hmdclog.log_to_console()
 
 # Instantiate a Quotas class handler.
-qh = HMDCQuotas(hmdclog)
+qh = hmdcquotas.HMDCQuotas(hmdclog)
 
 # Determine action to perform.
 if args.action == 'S':
