@@ -52,7 +52,7 @@ class HMDCQuotas:
         VOLUMES (dictionary): SVMs with their respective volumes.
     """
 
-    CONFIG_FILE = '/root/hmdcquotas.conf'
+    CONFIG_FILE = '/etc/hmdcquotas.conf'
 
     DEFAULT_QUOTA = '5G'
 
