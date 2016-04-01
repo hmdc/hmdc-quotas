@@ -67,7 +67,8 @@ class HMDCQuotas:
                                      'projects_nobackup',
                                      'projects_ci3',
                                      'projects_nobackup_ci3'),
-               'nc-hmdc-svm01-mgmt': ('www',)}
+               'nc-hmdc-svm01-mgmt': ('www',),
+               'nc-rshiny-svm01-mgmt': ('rshiny_ci3',) }
 
     def __init__(self, logger=None, debug_level=None, log_console=False, log_file=False):
         """Initializes settings, logging, and creates connections to vservers.
