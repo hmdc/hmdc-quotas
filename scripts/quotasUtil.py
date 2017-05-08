@@ -124,8 +124,11 @@ parser.add_argument('-a', '--action', required=True, choices=['A', 'D', 'M', 'S'
                     help="Add | Delete | Modify | Search")
 parser.add_argument('-g', '--group', required=True,
                     help="Name of the group.")
-parser.add_argument('-v', '--volume', choices=['projects', 'projects_nobackup',
-                    'projects_ci3', 'projects_nobackup_ci3', 'www', 'rshiny_ci3'],
+parser.add_argument('-v', '--volume', choices=[
+                        'projects', 'projects_nobackup',
+                        'projects_ci3', 'projects_nobackup_ci3',
+                        'www', 'rshiny_ci3',
+                        'bigdata_nobackup', 'bigdata_nobackup_ci3'],
                     help="The NetApp volume.")
 parser.add_argument('-s', '--size',
                     help="Size of the disk quota.")
