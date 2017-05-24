@@ -68,7 +68,9 @@ class HMDCQuotas:
                                      'projects_ci3',
                                      'projects_nobackup_ci3',),
                'nc-bigdata-svm01-mgmt': ('bigdata_nobackup',
-                                         'bigdata_nobackup_ci3',),
+                                         'bigdata_nobackup_ci3',
+                                         'bigdata',
+                                         'bigdata_ci3'),
                'nc-hmdc-svm01-mgmt': ('www',),
                'nc-rshiny-svm01-mgmt': ('rshiny_ci3',) }
 
