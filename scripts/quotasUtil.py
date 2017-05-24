@@ -63,7 +63,7 @@ def modify_quota(args, qh, hmdclog):
 
     # Perform the NetApp quota change.
     success, result = qh.modify(action, args.group, args.volume, vserver,
-                                args.size, args.files)
+                                args.policy, args.size, args.files)
     if not success:
         return (False, "An error occurred while modifying quota: " + result)
     else:
@@ -106,7 +106,7 @@ def search_quotas(args, qh, hmdclog):
         success (boolean): Result of running the query.
     """
 
-    success, result = qh.search_vservers(args.group, args.volume)
+    success, result = qh.search_vservers(args.group, args.policy, args.volume)
     if not success:
         print("Error: " + result)
     elif len(result) < 1:
@@ -127,14 +127,15 @@ parser.add_argument('-g', '--group', required=True,
 parser.add_argument('-v', '--volume', choices=[
                         'projects', 'projects_nobackup',
                         'projects_ci3', 'projects_nobackup_ci3',
-                        'www', 'rshiny_ci3',
-                        'bigdata', 'bigdata_ci3'
+                        'www', 'rshiny_ci3', 'bigdata', 'bigdata_ci3',
                         'bigdata_nobackup', 'bigdata_nobackup_ci3'],
                     help="The NetApp volume.")
 parser.add_argument('-s', '--size',
                     help="Size of the disk quota.")
+parser.add_argument('-p', '--policy',
+                    help="Name of the quota policy to use. (Optional)")
 parser.add_argument('-f', '--files', type=int,
-                    help="Maximum number of files.")
+                    help="Maximum number of files. (Optional)")
 args = parser.parse_args()
 
 # Set logging level based on the debug argument.

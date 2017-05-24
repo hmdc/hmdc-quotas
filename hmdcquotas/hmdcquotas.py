@@ -22,7 +22,7 @@ class HMDCQuotas:
     Example:
         qh = HMDCQuotas()
         # Modify a group
-        qh.modify(action, group,  volume, vserver, size, files)
+        qh.modify(action, group, volume, vserver, policy, size, files)
         # Search everything
         qh.search_vservers(group)
         # Search all volumes
@@ -67,10 +67,10 @@ class HMDCQuotas:
                                      'projects_nobackup',
                                      'projects_ci3',
                                      'projects_nobackup_ci3',),
-               'nc-bigdata-svm02-mgmt': ('bigdata_nobackup'),
                'nc-bigdata-svm01-mgmt': ('bigdata_nobackup_ci3',
                                          'bigdata',
                                          'bigdata_ci3'),
+               'nc-bigdata-svm02-mgmt': ('bigdata_nobackup'),
                'nc-hmdc-svm01-mgmt': ('www',),
                'nc-rshiny-svm01-mgmt': ('rshiny_ci3',) }
 
@@ -139,7 +139,7 @@ class HMDCQuotas:
         svm.set_admin_user(self.options['cdot_username'],
                            self.options['cdot_password'])
 
-    def _netapp_invoke(self, action, group, volume, vserver, disk_limit, file_limit):
+    def _netapp_invoke(self, action, group, volume, vserver, policy, disk_limit, file_limit):
         """Handles invokes to the NetApp: add/delete/modify/search queries.
 
         Arguments:
@@ -147,6 +147,7 @@ class HMDCQuotas:
             disk_limit (int): Group disk quota in KB.
             file_limit (int): Number of maximum files allowed for the group.
             group (string): Name of the LDAP group.
+            policy (string): Name of the quota policy.
             volume (string): The volume where the group quota resides.
             vserver (string): The vserver the volume lives on.
 
@@ -179,15 +180,20 @@ class HMDCQuotas:
             self.hmdclog.log('debug', "Unrecognized action: " + action)
             return (False, "Unknown action.")
 
+        # Set a default quota policy.
+        if not policy:
+            policy = 'default'
+
         # Delete and search queries do not use disk_limit and file_limit.
         if "delete" in action or "get" in action:
-            invoke = svm.invoke(action, 'qtree', '', 'quota-target', group,
-                                'quota-type', 'group', 'volume', volume)
+            invoke = svm.invoke(action, 'policy', policy, 'qtree', '',
+                                'quota-target', group, 'quota-type', 'group',
+                                'volume', volume)
         elif "add" in action or "modify" in action:
-            invoke = svm.invoke(action, 'qtree', '', 'quota-target', group,
-                                'quota-type', 'group', 'volume', volume,
-                                'disk-limit', disk_limit, 'soft-file-limit',
-                                file_limit)
+            invoke = svm.invoke(action, 'policy', policy, 'qtree', '',
+                                'quota-target', group, 'quota-type', 'group',
+                                'volume', volume, 'disk-limit', disk_limit,
+                                'soft-file-limit', file_limit)
 
         return (True, invoke)
 
@@ -211,8 +217,13 @@ class HMDCQuotas:
         # TODO: Need to find how to get results from quota-resize;
         #       the instance.results_*() does not work nor does
         #       instance.child_get_string("result-*").
+        # UPDATE: According to NetApp SDK, this will have return codes
+        #       0: result-error-code (code number, if error)
+        #       1: result-error-message (description, if error)
+        #       2: result-jobid (id of the job that was queued)
+        #       3: result-status ("succeeded", "in-progress", "failed")
         #
-        svm.invoke("quota-resize", "volume", volume)
+        invoke = svm.invoke("quota-resize", "volume", volume)
 
         return (True, None)
 
@@ -304,7 +315,7 @@ class HMDCQuotas:
             self.hmdclog.log('debug', "No \"" + volume_to_find + "\" in VOLUMES dictionary")
             return (False, "Did not find a matching vserver for volume \"" + volume_to_find + "\".")
 
-    def group_lookup(self, group, volume, vserver):
+    def group_lookup(self, group, policy, volume, vserver):
         """Queries the NetApp for a group on a specific vserver/volume.
 
         Arguments:
@@ -322,7 +333,7 @@ class HMDCQuotas:
             [1] (string/instance): Error message, or upon success, invoke.
         """
 
-        success, result = self._netapp_invoke('search', group, volume, vserver, None, None)
+        success, result = self._netapp_invoke('search', group, volume, vserver, policy, None, None)
         if success:
             reason = result.results_reason()
         else:
@@ -344,7 +355,7 @@ class HMDCQuotas:
                 self.hmdclog.log('error', reason)
                 return (False, reason)
 
-    def modify(self, action, group, volume, vserver, disk_limit=None, file_limit=None):
+    def modify(self, action, group, volume, vserver, policy, disk_limit=None, file_limit=None):
         """Preps disk and file quotas, then executes add/delete/modify queries.
 
         Arguments:
@@ -352,6 +363,7 @@ class HMDCQuotas:
             disk_limit (int): Group disk quota with unit.
             file_limit (int): Number of maximum files allowed for the group.
             group (string): Name of the LDAP group.
+            policy (string): Name of the quota policy.
             volume (string): The volume where the group quota resides.
             vserver (string): The vserver the volume lives on.
 
@@ -387,7 +399,7 @@ class HMDCQuotas:
 
         # Perform the NetApp quota change.
         sucess, result = self._netapp_invoke(action, group, volume, vserver,
-                                             disk_limit, file_limit)
+                                             policy, disk_limit, file_limit)
         if success:
             reason = result.results_reason()
         else:
@@ -404,7 +416,7 @@ class HMDCQuotas:
             self.hmdclog.log('error', reason)
             return (False, reason)
 
-    def search_vservers(self, group, volume=None):
+    def search_vservers(self, group, policy, volume=None):
         """Finds group quota on any vserver/volume combination.
 
         Arguments:
@@ -430,7 +442,7 @@ class HMDCQuotas:
             for vserver in self.VOLUMES.iterkeys():
                 self.hmdclog.log('debug', "Searching vserver \"" + vserver + "\"")
 
-                success, result = self.search_volumes(group, vserver)
+                success, result = self.search_volumes(group, policy, vserver)
                 if not success:
                     self.hmdclog.log('error', result)
                     return (False, result)
@@ -447,7 +459,7 @@ class HMDCQuotas:
 
             self.hmdclog.log('debug', "Searching vserver \"" + vserver + "\"")
 
-            success, result = self.group_lookup(group, volume, vserver)
+            success, result = self.group_lookup(group, policy, volume, vserver)
             if success:
                 quotas = self.humanize_quotas(result)
                 # Each vserver with results becomes a dictionary.
@@ -459,7 +471,7 @@ class HMDCQuotas:
 
         return (True, matches)
 
-    def search_volumes(self, group, vserver):
+    def search_volumes(self, group, policy, vserver):
         """Finds group quota on any volume in a specific vserver.
 
         Arguments:
@@ -480,7 +492,7 @@ class HMDCQuotas:
         for volume in self.VOLUMES[vserver]:
             self.hmdclog.log('debug', "Searching volume \"" + volume + "\"")
 
-            success, result = self.group_lookup(group, volume, vserver)
+            success, result = self.group_lookup(group, policy, volume, vserver)
             if success:
                 quotas = self.humanize_quotas(result)
                 # Each volume with results becomes a dictionary.
