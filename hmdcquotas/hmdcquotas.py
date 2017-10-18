@@ -71,6 +71,7 @@ class HMDCQuotas:
                                          'bigdata_ci3'),
                'nc-bigdata-svm02-mgmt': ('bigdata','bigdata_nobackup'),
                'nc-hmdc-svm01-mgmt': ('www',),
+               'nc-nsaph-ci3-svm01-mgmt': ('nsaph_ci3',),
                'nc-rshiny-svm01-mgmt': ('rshiny_ci3',) }
 
     def __init__(self, logger=None, debug_level=None, log_console=False, log_file=False):
