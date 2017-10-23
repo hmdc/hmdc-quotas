@@ -128,7 +128,7 @@ parser.add_argument('-v', '--volume', choices=[
                         'projects', 'projects_nobackup',
                         'projects_ci3', 'projects_nobackup_ci3',
                         'www', 'rshiny_ci3', 'bigdata', 'bigdata_ci3',
-                        'bigdata_nobackup', 'bigdata_nobackup_ci3'],
+                        'bigdata_nobackup', 'bigdata_nobackup_ci3', nsaph_ci3],
                     help="The NetApp volume.")
 parser.add_argument('-s', '--size',
                     help="Size of the disk quota.")
