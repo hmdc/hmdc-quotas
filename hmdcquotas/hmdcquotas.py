@@ -64,8 +64,8 @@ class HMDCQuotas:
     JERK_FILESIZES = ('P', 'E', 'Z', 'Y')
 
     VOLUMES = {'nc-rce-svm01-mgmt': ('projects',
-                                     'projects_nobackup',
-                                     'projects_ci3',
+                                     'projects_nobackup',),
+               'nc-projects-ci3-svm01-mgmt': ('projects_ci3',
                                      'projects_nobackup_ci3',),
                'nc-bigdata-ci3-svm01-mgmt': ('bigdata_nobackup_ci3',
                                          'bigdata_ci3'),
