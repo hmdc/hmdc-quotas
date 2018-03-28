@@ -136,12 +136,12 @@ qh = hmdcquotas.HMDCQuotas(hmdclog)
 if args.action == 'S':
     search_quotas(args, qh, hmdclog)
 else:
-    success, result = modify_quota(args, qh, hmdclog)
-    if success:
+    result = modify_quota(args, qh, hmdclog)
+    if not result:
+        print(ERROR_MSG)
+    else:
         if args.action == 'D':
             print("Quota successfully deleted.")
         else:
             print("Quota successfully modified.")
             search_quotas(args, qh, hmdclog)
-    else:
-        print(result)

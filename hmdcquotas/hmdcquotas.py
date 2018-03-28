@@ -162,8 +162,9 @@ class HMDCQuotas:
             action = 'quota-get-entry'
             self.hmdclog.log('debug', "Recognized action: " + action)
         else:
-            self.hmdclog.log('debug', "Unrecognized action: " + action)
-            return (False, "Unknown action.")
+            self.ERROR_MSG = "Unrecognized action."
+            self.hmdclog.log('debug', self.ERROR_MSG)
+            return False
 
         # Set a default quota policy.
         if not policy:
@@ -184,7 +185,7 @@ class HMDCQuotas:
             self.ERROR_MSG = result.results_reason()
             self.hmdclog.log('error', self.ERROR_MSG)
             return False
-        else
+        else:
             return result
 
     def _netapp_resize(self, volume, vserver):
@@ -298,7 +299,7 @@ class HMDCQuotas:
             self.ERROR_MSG = group + "not found on " + volume
             self.hmdclog.log('error', self.ERROR_MSG)
             return False
-        else
+        else:
             self.hmdclog.log('info', group + " found on " + volume)
             return True
 
@@ -341,7 +342,7 @@ class HMDCQuotas:
 
         if not result:
             return False
-        else
+        else:
             result = self._netapp_resize(volume, vserver)
             return True
 
@@ -372,7 +373,7 @@ class HMDCQuotas:
             result = self.get_vserver(volume)
             if not result:
                 return False
-            else
+            else:
                 vserver = result
 
             self.hmdclog.log('debug', "Searching " + vserver)
@@ -405,7 +406,7 @@ class HMDCQuotas:
 
             if not result:
                 return False
-            else
+            else:
                 quotas = self.humanize_quotas(result)
                 # Each volume with results becomes a dictionary.
                 matches[volume] = quotas
