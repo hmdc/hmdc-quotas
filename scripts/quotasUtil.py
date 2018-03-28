@@ -17,6 +17,8 @@ Public Functions:
     search_quotas: Preps and calls search NetApp queries.
 """
 
+ERROR_MSG = ""
+
 import hmdcquotas
 import hmdclogger
 import argparse
@@ -28,28 +30,18 @@ def modify_quota(args, qh, hmdclog):
         args (object): Namespace object of parsed arguments.
         qh (object): Quotas object handler.
         hmdclog (object): HMDCLogger object handler.
-
-    Attributes:
-        result (mixed): Value returned by called function.
-        success (boolean): Result of running the query.
-        vserver (string): The vserver to search.
-
-    Returns (tuple):
-        [0] (boolean): Success of executing request.
-        [1] (string/None): Error message, or upon success, None.
     """
 
     # Volume is required because of duplicate group names.
     if args.volume is None:
         hmdclog.log('error', "No volume specified in query")
-        return (False, "Error: You need to specify a volume.")
+        ERROR_MSG = "Error: You need to specify a volume."
+        return False
 
     # Find the right vserver to use.
-    success, result = qh.get_vserver(args.volume)
-    if success:
-        vserver = result
-    else:
-        return (False, result)
+    vserver = qh.get_vserver(args.volume)
+    if not vserver:
+        return False
 
     # Determine specific modify action (add/delete/modify).
     if args.action == 'A':
@@ -59,15 +51,17 @@ def modify_quota(args, qh, hmdclog):
     elif args.action == 'M':
         action = 'modify'
     else:
-        return (False, "Unhandled action.")
+        ERROR_MSG = "Unhandled action."
+        return False
 
     # Perform the NetApp quota change.
-    success, result = qh.modify(action, args.group, args.volume, vserver,
-                                args.policy, args.size, args.files)
-    if not success:
-        return (False, "An error occurred while modifying quota: " + result)
+    result = qh.modify(action, args.group, args.volume, vserver,
+                       args.policy, args.size, args.files)
+    if not result:
+        ERROR_MSG = "An error occurred while modifying quota: " + qh.ERROR_MSG
+        return False
     else:
-        return (True, None)
+        return True
 
 
 def print_quotas(results):
@@ -75,12 +69,6 @@ def print_quotas(results):
 
     Arguments:
         results (dictionary): Each vserver and volume where quotas were found.
-
-    Attributes:
-        disk_quota (string): Disk quota displayed in GB.
-        file_quota (string): File quota displayed by number of files.
-        output (string): Format of output for use in a chart-layout.
-        svm (string): Name of the vserver where quotas were found.
     """
 
     output = "{0:<15} {1:<25} {2:>5} {3:>15} {4:>15}"
@@ -100,18 +88,16 @@ def search_quotas(args, qh, hmdclog):
         args (object): Namespace object of parsed arguments.
         qh (object): Quotas object handler.
         hmdclog (object): HMDCLogger object handler.
-
-    Attributes:
-        result (mixed): Value returned by called function.
-        success (boolean): Result of running the query.
     """
 
-    success, result = qh.search_vservers(args.group, args.policy, args.volume)
-    if not success:
-        print("Error: " + result)
+    result = qh.search_vservers(args.group, args.policy, args.volume)
+
+    if not result:
+        print("Error: " + qh.ERROR_MSG)
     elif len(result) < 1:
-        hmdclog.log('debug', "No matches for group \"" + args.group + "\" were found")
-        print("No matches for group \"" + args.group + "\" were found.")
+        ERROR_MSG = "No matches for " + args.group + " were found."
+        hmdclog.log('debug', ERROR_MSG)
+        print(ERROR_MSG)
     else:
         print_quotas(result)
 
