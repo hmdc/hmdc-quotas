@@ -49,21 +49,19 @@ class HMDCQuotas:
         DEFAULT_QUOTA (string): The quota value to use when none is specified.
         ERROR_MSG (string): Error message if raised.
         FILESIZES (dictionary): Valid filesize units and their kb multiplier.
+        NA_INVOKE (instance): Stores last result from NetApp query.
         VOLUMES (dictionary): SVMs with their respective volumes.
     """
 
     CONFIG_FILE = '/etc/hmdcquotas.conf'
-
     DEFAULT_QUOTA = '5G'
-
     ERROR_MSG = ''
-
     FILESIZES = {'B': .0009765625,
                  'K': 1,
                  'M': 1024,
                  'G': 1048576,
                  'T': 1073741824}
-
+    NA_INVOKE = None
     VOLUMES = {'nc-rce-svm01-mgmt': ('projects',
                                      'projects_nobackup',),
                'nc-bigdata-ci3-svm01-mgmt': ('bigdata_nobackup_ci3',
@@ -172,21 +170,30 @@ class HMDCQuotas:
 
         # Delete and search queries do not use disk_limit and file_limit.
         if "delete" in action or "get" in action:
-            result = svm.invoke(action, 'policy', policy, 'qtree', '',
-                                'quota-target', group, 'quota-type', 'group',
-                                'volume', volume)
+            self.NA_INVOKE = svm.invoke(action,
+                                        'policy', policy,
+                                        'qtree', '',
+                                        'quota-target', group,
+                                        'quota-type',
+                                        'group',
+                                        'volume', volume)
         elif "add" in action or "modify" in action:
-            result = svm.invoke(action, 'policy', policy, 'qtree', '',
-                                'quota-target', group, 'quota-type', 'group',
-                                'volume', volume, 'disk-limit', disk_limit,
-                                'soft-file-limit', file_limit)
+            self.NA_INVOKE = svm.invoke(action,
+                                        'policy', policy,
+                                        'qtree', '',
+                                        'quota-target', group,
+                                        'quota-type',
+                                        'group',
+                                        'volume', volume,
+                                        'disk-limit', disk_limit,
+                                        'soft-file-limit', file_limit)
 
-        if result.results_status() == "failed":
-            self.ERROR_MSG = result.results_reason()
+        if self.NA_INVOKE.results_status() == "failed":
+            self.ERROR_MSG = self.NA_INVOKE.results_reason()
             self.hmdclog.log('error', self.ERROR_MSG)
             return False
         else:
-            return result
+            return True
 
     def _netapp_resize(self, volume, vserver):
         """Performs a quota resize on the NetApp to commit all quota changes.
@@ -242,24 +249,21 @@ class HMDCQuotas:
             self.hmdclog.log('error', self.ERROR_MSG)
             return False
 
-    def humanize_quotas(self, invoke):
+    def humanize_quotas(self):
         """Makes NetApp quota results human readable.
-
-        Arguments:
-            invoke (instance): Results from a NetApp query.
         """
 
         #
         # The quota-get-entry disk-limit API reports in KB, but humanize
         # translates bytes, therefore the * 1024.
         #
-        disk_quota = invoke.child_get_string("disk-limit")
+        disk_quota = self.NA_INVOKE.child_get_string("disk-limit")
         self.hmdclog.log('debug', "Disk quota (raw): " + str(disk_quota))
         disk_quota = int(disk_quota) * 1024
         disk_quota = humanize.naturalsize(disk_quota, gnu=True)
         self.hmdclog.log('info', "Disk quota: " + str(disk_quota))
 
-        file_quota = invoke.child_get_string("soft-file-limit")
+        file_quota = self.NA_INVOKE.child_get_string("soft-file-limit")
         file_quota = str(file_quota)
         file_quota = None if file_quota == "-" else int(file_quota)
         self.hmdclog.log('info', "File quota: " + str(file_quota))
@@ -343,7 +347,7 @@ class HMDCQuotas:
         if not result:
             return False
         else:
-            result = self._netapp_resize(volume, vserver)
+            self._netapp_resize(volume, vserver)
             return True
 
     def search_vservers(self, group, policy, volume=None):
@@ -382,7 +386,7 @@ class HMDCQuotas:
             if not result:
                 pass
             else:
-                quotas = self.humanize_quotas(result)
+                quotas = self.humanize_quotas()
                 # Each vserver with results becomes a dictionary.
                 matches[vserver] = {volume: quotas}
 
