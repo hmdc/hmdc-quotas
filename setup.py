@@ -10,5 +10,5 @@ setup(author='Bradley Frank',
       requires=['ConfigParser','hmdclogger','humanize','re','sys'],
       scripts=['scripts/quotasUtil.py'],
       url='https://github.com/hmdc/hmdc-quotas',
-      version='1.7',
+      version='2.0',
 )
