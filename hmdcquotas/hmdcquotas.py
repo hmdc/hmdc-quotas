@@ -97,6 +97,11 @@ class HMDCQuotas:
             'cdot_username': conf.get(config_name, 'cdot_username'),
         }
 
+        if self.options['cdot_username'] == "" or
+           self.options['cdot_password'] == "":
+            self.ERROR_MSG = "Username or password not found."
+            return False
+
         # Configure HMDC logging instance.
         if logger is None:
             if debug_level is None:
@@ -149,16 +154,16 @@ class HMDCQuotas:
         # Convert the action to NetApp commands.
         if "add" in action:
             action = 'quota-add-entry'
-            self.hmdclog.log('debug', "Recognized action: " + action)
+            self.hmdclog.log('debug', "Using action: " + action)
         elif "delete" in action:
             action = 'quota-delete-entry'
-            self.hmdclog.log('debug', "Recognized action: " + action)
+            self.hmdclog.log('debug', "Using action: " + action)
         elif "modify" in action:
             action = 'quota-modify-entry'
-            self.hmdclog.log('debug', "Recognized action: " + action)
+            self.hmdclog.log('debug', "Using action: " + action)
         elif "get" in action or "search" in action:
             action = 'quota-get-entry'
-            self.hmdclog.log('debug', "Recognized action: " + action)
+            self.hmdclog.log('debug', "Using action: " + action)
         else:
             self.ERROR_MSG = "Unrecognized action."
             self.hmdclog.log('debug', self.ERROR_MSG)
@@ -190,7 +195,7 @@ class HMDCQuotas:
 
         if self.NA_INVOKE.results_status() == "failed":
             self.ERROR_MSG = self.NA_INVOKE.results_reason()
-            self.hmdclog.log('error', self.ERROR_MSG)
+            self.hmdclog.log('debug', self.ERROR_MSG)
             return False
         else:
             return True
@@ -301,7 +306,7 @@ class HMDCQuotas:
 
         if not result:
             self.ERROR_MSG = group + " not found on " + volume
-            self.hmdclog.log('error', self.ERROR_MSG)
+            self.hmdclog.log('debug', self.ERROR_MSG)
             return False
         else:
             self.hmdclog.log('info', group + " found on " + volume)
@@ -355,6 +360,7 @@ class HMDCQuotas:
 
         Arguments:
             group (string): Name of the LDAP group.
+            policy (string): Name of the quota policy.
             volume (string): The volume where the group quota resides.
         """
 
@@ -397,6 +403,7 @@ class HMDCQuotas:
 
         Arguments:
             group (string): Name of the LDAP group.
+            policy (string): Name of the quota policy.
             vserver (string): The vserver to search.
         """
 
@@ -410,7 +417,7 @@ class HMDCQuotas:
             if not result:
                 pass
             else:
-                quotas = self.humanize_quotas(result)
+                quotas = self.humanize_quotas()
                 # Each volume with results becomes a dictionary.
                 matches[volume] = quotas
 
