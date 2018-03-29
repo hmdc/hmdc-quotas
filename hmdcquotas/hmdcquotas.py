@@ -14,6 +14,7 @@ import hmdclogger
 import humanize
 import re
 import sys
+import time
 
 
 class HMDCQuotas:
@@ -97,10 +98,10 @@ class HMDCQuotas:
             'cdot_username': conf.get(config_name, 'cdot_username'),
         }
 
-        if self.options['cdot_username'] == "" or
-           self.options['cdot_password'] == "":
-            self.ERROR_MSG = "Username or password not found."
-            return False
+        if (self.options['cdot_username'] == "" or
+            self.options['cdot_password'] == ""):
+            self.ERROR_MSG = "NetApp username or password not found."
+            raise RuntimeError self.ERROR_MSG
 
         # Configure HMDC logging instance.
         if logger is None:
@@ -209,18 +210,21 @@ class HMDCQuotas:
         """
 
         svm = self.vservers[vserver]
-        #
-        # TODO: Need to find how to get results from quota-resize;
-        #       the instance.results_*() does not work nor does
-        #       instance.child_get_string("result-*").
-        # UPDATE: According to NetApp SDK, this will have return codes
-        #       0: result-error-code (code number, if error)
-        #       1: result-error-message (description, if error)
-        #       2: result-jobid (id of the job that was queued)
-        #       3: result-status ("succeeded", "in-progress", "failed")
-        #
-        invoke = svm.invoke("quota-resize", "vserver", vserver,
-                            "volume", volume)
+        self.NA_INVOKE = svm.invoke("quota-resize", "volume", volume)
+        
+        status = self.NA_INVOKE.child_get_string("result-status")
+
+        # NetApp 'quota resize' is not instant; have to wait for job to run
+        while status == "in_progress":
+            time.sleep(5)
+            status = self.NA_INVOKE.child_get_string("result-status")
+
+        if status == "failed"
+            self.ERROR_MSG = self.NA_INVOKE.child_get_string("result-error-message")
+            self.hmdclog.log('debug', self.ERROR_MSG)
+            return False
+        else
+            return True
 
     def convert_to_kb(self, disk_limit):
         """Converts almost any file size unit into KB.
@@ -351,9 +355,9 @@ class HMDCQuotas:
 
         if not result:
             return False
-        else:
-            self._netapp_resize(volume, vserver)
-            return True
+
+        # Commit the quota change.
+        return self._netapp_resize(volume, vserver)
 
     def search_vservers(self, group, policy, volume=None):
         """Finds group quota on any vserver/volume combination.
