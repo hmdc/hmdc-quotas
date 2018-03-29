@@ -101,7 +101,7 @@ class HMDCQuotas:
         if (self.options['cdot_username'] == "" or
             self.options['cdot_password'] == ""):
             self.ERROR_MSG = "NetApp username or password not found."
-            raise RuntimeError self.ERROR_MSG
+            raise RuntimeError(self.ERROR_MSG)
 
         # Configure HMDC logging instance.
         if logger is None:
@@ -213,17 +213,15 @@ class HMDCQuotas:
         self.NA_INVOKE = svm.invoke("quota-resize", "volume", volume)
         
         status = self.NA_INVOKE.child_get_string("result-status")
+        error = self.NA_INVOKE.child_get_string("result-error-message")
 
-        # NetApp 'quota resize' is not instant; have to wait for job to run
-        while status == "in_progress":
-            time.sleep(5)
-            status = self.NA_INVOKE.child_get_string("result-status")
+        self.hmdclog.log('debug', "Quota resize job is " + status)
 
-        if status == "failed"
-            self.ERROR_MSG = self.NA_INVOKE.child_get_string("result-error-message")
+        if status == "failed":
+            self.ERROR_MSG = error
             self.hmdclog.log('debug', self.ERROR_MSG)
             return False
-        else
+        else:
             return True
 
     def convert_to_kb(self, disk_limit):
