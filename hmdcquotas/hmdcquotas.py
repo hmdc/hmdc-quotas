@@ -279,7 +279,7 @@ class HMDCQuotas:
                 return vserver
         else:
             self.ERROR_MSG = "Could not find volume " + volume_to_find + "."
-            _log_msg = volume_to_find + "not found in VOLUMES dictionary"
+            _log_msg = volume_to_find + " not found in VOLUMES dictionary"
             self.hmdclog.log('error', _log_msg)
             return False
 
@@ -296,7 +296,7 @@ class HMDCQuotas:
                                      None, None)
 
         if not result:
-            self.ERROR_MSG = group + "not found on " + volume
+            self.ERROR_MSG = group + " not found on " + volume
             self.hmdclog.log('error', self.ERROR_MSG)
             return False
         else:
@@ -364,24 +364,23 @@ class HMDCQuotas:
                 result = self.search_volumes(group, policy, vserver)
 
                 if not result:
-                    return False
+                    pass
                 elif len(result) > 0:
                     # Filters out empty result sets.
                     matches[vserver] = result
         else:
             # Volume was specified.
-            result = self.get_vserver(volume)
-            if not result:
+            vserver = self.get_vserver(volume)
+
+            if not vserver:
                 return False
-            else:
-                vserver = result
 
             self.hmdclog.log('debug', "Searching " + vserver)
 
             result = self.group_lookup(group, policy, volume, vserver)
 
             if not result:
-                return False
+                pass
             else:
                 quotas = self.humanize_quotas(result)
                 # Each vserver with results becomes a dictionary.
