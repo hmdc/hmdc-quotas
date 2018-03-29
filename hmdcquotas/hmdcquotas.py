@@ -404,7 +404,7 @@ class HMDCQuotas:
             result = self.group_lookup(group, policy, volume, vserver)
 
             if not result:
-                return False
+                pass
             else:
                 quotas = self.humanize_quotas(result)
                 # Each volume with results becomes a dictionary.
