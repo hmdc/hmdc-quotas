@@ -30,6 +30,10 @@ def modify_quota(args, qh, hmdclog):
         args (object): Namespace object of parsed arguments.
         qh (object): Quotas object handler.
         hmdclog (object): HMDCLogger object handler.
+
+        Returns:
+            (boolean): True on success or False on failure
+                       (also sets ERROR_MSG on error)
     """
 
     # Volume is required because of duplicate group names.
@@ -88,6 +92,8 @@ def search_quotas(args, qh, hmdclog):
         args (object): Namespace object of parsed arguments.
         qh (object): Quotas object handler.
         hmdclog (object): HMDCLogger object handler.
+
+    (also sets ERROR_MSG on error)
     """
 
     result = qh.search_vservers(args.group, args.policy, args.volume)
@@ -101,6 +107,14 @@ def search_quotas(args, qh, hmdclog):
     else:
         print_quotas(result)
 
+# Temporarily instantiate unconfigured Quotas class handler
+#  just to grab some of its internal data
+temp_qh = hmdcquotas.HMDCQuotas()
+vol_list = ()
+vols = temp_qh.VOLUMES
+for volume in vols.itervalues():
+    vol_list = vol_list + volume
+del temp_qh
 
 # Setup argument parsing with the argparse module.
 parser = argparse.ArgumentParser(description="Manage RCE group quotas.")
@@ -110,12 +124,9 @@ parser.add_argument('-a', '--action', required=True, choices=['A', 'D', 'M', 'S'
                     help="Add | Delete | Modify | Search")
 parser.add_argument('-g', '--group', required=True,
                     help="Name of the group.")
-parser.add_argument('-v', '--volume', choices=[
-                        'projects', 'projects_nobackup',
-                        'projects_ci3', 'projects_nobackup_ci3',
-                        'www', 'rshiny_ci3', 'bigdata', 'bigdata_ci3',
-                        'bigdata_nobackup', 'bigdata_nobackup_ci3', 'nsaph_ci3'],
+parser.add_argument('-v', '--volume', choices=vol_list,
                     help="The NetApp volume.")
+del vol_list
 parser.add_argument('-s', '--size',
                     help="Size of the disk quota.")
 parser.add_argument('-p', '--policy',

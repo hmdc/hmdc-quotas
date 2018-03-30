@@ -57,12 +57,12 @@ class HMDCQuotas:
     CONFIG_FILE = '/etc/hmdcquotas.conf'
     DEFAULT_QUOTA = '5G'
     ERROR_MSG = ''
-    FILESIZES = {'B': .0009765625,
-                 'K': 1,
+    FILESIZES = {'K': 1,
                  'M': 1024,
                  'G': 1048576,
                  'T': 1073741824}
     NA_INVOKE = None
+    # these must be tuples because python
     VOLUMES = {'nc-rce-svm01-mgmt': ('projects',
                                      'projects_nobackup',),
                'nc-projects-ci3-svm01-mgmt': ('projects_ci3',
@@ -70,7 +70,7 @@ class HMDCQuotas:
                'nc-bigdata-ci3-svm01-mgmt': ('bigdata_nobackup_ci3',
                                              'bigdata_ci3'),
                'nc-bigdata-svm02-mgmt': ('bigdata','bigdata_nobackup'),
-               'nc-hmdc-svm01-mgmt': ('www'),
+               'nc-hmdc-svm01-mgmt': ('www',),
                'nc-nsaph-ci3-svm01-mgmt': ('nsaph_ci3',),
                'nc-projects-ci3-svm01-mgmt': ('projects_ci3',
                                               'projects_nobackup_ci3',),
@@ -150,6 +150,10 @@ class HMDCQuotas:
             policy (string): Name of the quota policy.
             volume (string): The volume where the group quota resides.
             vserver (string): The vserver the volume lives on.
+
+        Returns:
+            (boolean): True on success or False on failure
+                       (also sets ERROR_MSG on error)
         """
 
         svm = self.vservers[vserver]
@@ -182,22 +186,20 @@ class HMDCQuotas:
                                         'policy', policy,
                                         'qtree', '',
                                         'quota-target', group,
-                                        'quota-type',
-                                        'group',
+                                        'quota-type', 'group',
                                         'volume', volume)
         elif "add" in action or "modify" in action:
             self.NA_INVOKE = svm.invoke(action,
                                         'policy', policy,
                                         'qtree', '',
                                         'quota-target', group,
-                                        'quota-type',
-                                        'group',
+                                        'quota-type', 'group',
                                         'volume', volume,
                                         'disk-limit', disk_limit,
                                         'soft-file-limit', file_limit)
 
         if self.NA_INVOKE.results_status() == "failed":
-            self.ERROR_MSG = self.NA_INVOKE.results_reason()
+            self.ERROR_MSG = str(self.NA_INVOKE.results_reason())
             self.hmdclog.log('debug', self.ERROR_MSG)
             return False
         else:
@@ -209,18 +211,23 @@ class HMDCQuotas:
         Arguments:
             volume (string): The volume where the group quota resides.
             vserver (string): The vserver the volume lives on.
+
+        Returns:
+            (boolean): True on success or False on failure
+                       (also sets ERROR_MSG on error)
         """
 
         svm = self.vservers[vserver]
         self.NA_INVOKE = svm.invoke("quota-resize", "volume", volume)
-        
+       
         status = self.NA_INVOKE.child_get_string("result-status")
         error = self.NA_INVOKE.child_get_string("result-error-message")
+        # status and error may be null if quota resize is done twice rapidly
 
-        self.hmdclog.log('debug', "Quota resize job is " + status)
+        self.hmdclog.log('debug', "Quota resize job is " + str(status))
 
         if status == "failed":
-            self.ERROR_MSG = error
+            self.ERROR_MSG = str(error)
             self.hmdclog.log('debug', self.ERROR_MSG)
             return False
         else:
@@ -231,10 +238,14 @@ class HMDCQuotas:
 
         Arguments:
             disk_limit (string): Disk size in any unit, with unit label.
+
+        Returns:
+            (boolean/int): Disk size in KB on success, False on failure
+                       (also sets ERROR_MSG on error)
         """
 
         # Use regex to parse the disk quota into numeric values and units.
-        match = re.match(r"([0-9]+)([a-z]+)", disk_limit, re.I)
+        match = re.match(r"^([0-9]+)([a-z])[Bb]?$", disk_limit, re.I)
         if match:
             items = match.groups()
         else:
@@ -252,7 +263,7 @@ class HMDCQuotas:
             disk_limit = size * self.FILESIZES[unit]
             _log_msg = "Converted disk quota: " + str(disk_limit)
             self.hmdclog.log('debug', _log_msg)
-            return disk_limit
+            return int(disk_limit)
         else:
             self.ERROR_MSG = "Unrecognized unit: " + unit
             self.hmdclog.log('error', self.ERROR_MSG)
@@ -260,7 +271,23 @@ class HMDCQuotas:
 
     def humanize_quotas(self):
         """Makes NetApp quota results human readable.
+
+           Requires that NA_INVOKE is defined by
+           first calling modify() or group_lookup().
+
+        Arguments:
+            (none)
+
+        Returns:
+            ((boolean)/(string, string)): Tuple of disk_quota, file_quota;
+                                          or False on failure.
+                                          (also sets ERROR_MSG on error)
         """
+
+        if not self.NA_INVOKE:
+            self.ERROR_MSG = "NA_INVOKE is null in humanize_quotas; search first"
+            self.hmdclog.log('error', self.ERROR_MSG)
+            return False
 
         #
         # The quota-get-entry disk-limit API reports in KB, but humanize
@@ -284,6 +311,10 @@ class HMDCQuotas:
 
         Arguments:
             volume_to_find (string): Name of the volume to search for.
+
+        Returns:
+            (string/boolean): Vserver name on success, False on failure
+                              (also sets ERROR_MSG on error)
         """
 
         for vserver, volumes in self.VOLUMES.iteritems():
@@ -301,8 +332,13 @@ class HMDCQuotas:
 
         Arguments:
             group (string): Name of the LDAP group.
+            policy (string): Name of the quota policy.
             volume (string): The volume where the group quota resides.
             vserver (string): The vserver the volume lives on.
+
+        Returns:
+            (boolean): True on success or False on failure
+                       (also sets ERROR_MSG on error)
         """
 
         result = self._netapp_invoke('search', group, volume, vserver, policy,
@@ -328,6 +364,10 @@ class HMDCQuotas:
             policy (string): Name of the quota policy.
             volume (string): The volume where the group quota resides.
             vserver (string): The vserver the volume lives on.
+
+        Returns:
+            (boolean): True on success or False on failure
+                       (also sets ERROR_MSG on error)
         """
 
         # Set the disk quota.
@@ -366,6 +406,11 @@ class HMDCQuotas:
             group (string): Name of the LDAP group.
             policy (string): Name of the quota policy.
             volume (string): The volume where the group quota resides.
+
+        Returns:
+            (dictionary/boolean): Dictionary of matches on success, or False
+                                  on failure.
+                                  (also sets ERROR_MSG on error)
         """
 
         matches = {}
@@ -400,6 +445,11 @@ class HMDCQuotas:
                 # Each vserver with results becomes a dictionary.
                 matches[vserver] = {volume: quotas}
 
+        if not matches:
+            self.ERROR_MSG = "Volume " + volume + " not found on any Vserver"
+            self.hmdclog.log('debug', self.ERROR_MSG)
+            return False
+
         return matches
 
     def search_volumes(self, group, policy, vserver):
@@ -409,6 +459,11 @@ class HMDCQuotas:
             group (string): Name of the LDAP group.
             policy (string): Name of the quota policy.
             vserver (string): The vserver to search.
+
+        Returns:
+            (dictionary/boolean): Dictionary of matches on success, or False
+                                  on failure.
+                                  (also sets ERROR_MSG on error)
         """
 
         matches = {}
