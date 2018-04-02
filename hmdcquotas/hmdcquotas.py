@@ -65,8 +65,6 @@ class HMDCQuotas:
     # these must be tuples because python
     VOLUMES = {'nc-rce-svm01-mgmt': ('projects',
                                      'projects_nobackup',),
-               'nc-projects-ci3-svm01-mgmt': ('projects_ci3',
-                                     'projects_nobackup_ci3',),
                'nc-bigdata-ci3-svm01-mgmt': ('bigdata_nobackup_ci3',
                                              'bigdata_ci3'),
                'nc-bigdata-svm02-mgmt': ('bigdata','bigdata_nobackup'),
