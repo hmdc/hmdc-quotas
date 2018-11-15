@@ -63,7 +63,7 @@ class HMDCQuotas:
                  'T': 1073741824}
     NA_INVOKE = None
     # these must be tuples because python
-    VOLUMES = {'nc-rce-svm01-mgmt': ('projects',
+    VOLUMES = {'nc-projects-svm01-mgmt': ('projects',
                                      'projects_nobackup',),
                'nc-bigdata-ci3-svm01-mgmt': ('bigdata_nobackup_ci3',
                                              'bigdata_ci3'),
