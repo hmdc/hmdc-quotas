@@ -216,8 +216,8 @@ class HMDCQuotas:
         """
 
         svm = self.vservers[vserver]
-        self.NA_INVOKE = svm.invoke("quota-resize", "volume", volume)
-       
+        self.NA_INVOKE = svm.invoke('quota-resize','volume',volume)
+
         status = self.NA_INVOKE.child_get_string("result-status")
         error = self.NA_INVOKE.child_get_string("result-error-message")
         # status and error may be null if quota resize is done twice rapidly
@@ -444,7 +444,7 @@ class HMDCQuotas:
                 matches[vserver] = {volume: quotas}
 
         if not matches:
-            self.ERROR_MSG = "Volume " + volume + " not found on any Vserver"
+            self.ERROR_MSG = "Group " + group + " not found on any Volume or Vserver"
             self.hmdclog.log('debug', self.ERROR_MSG)
             return False
 
